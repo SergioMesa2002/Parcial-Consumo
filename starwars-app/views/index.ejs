@@ -1,19 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars Characters</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<h1>Star Wars Characters</h1>
 
+
+<div>
+    <label for="searchId">Buscar por ObjectId:</label>
+    <input type="text" id="searchId" placeholder="Ingresa el ID">
+    <button id="btnSearchId">Buscar por ID</button>
+</div>
+
+<!-- Buscador por nombre -->
 <div>
     <label for="searchName">Buscar por nombre:</label>
     <input type="text" id="searchName" placeholder="Ingresa el nombre">
     <button id="btnSearchName">Buscar por nombre</button>
 </div>
 
+<!-- Botón para mostrar todos los personajes -->
+<button id="btnShowAll">Mostrar todos los personajes</button>
 
+<!-- Tabla para mostrar resultados de búsqueda -->
+<table>
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Altura</th>
+        <th>Género</th>
+    </tr>
+    </thead>
+    <tbody id="results"></tbody>
+</table>
+
+<!-- Mensaje para mostrar rutas disponibles -->
+<div id="message" style="margin-top: 20px;"></div>
+
+<!-- Mensaje de rutas para búsquedas manuales -->
+<div id="infoMessage" style="margin-top: 20px; font-style: italic;">
+    <p>Utiliza las siguientes rutas para buscar personajes manualmente:</p>
+    <p>1. Para obtener todos los personajes: <code>GET /api/characters</code></p>
+    <p>2. Para buscar por ObjectId: <code>GET /api/characters/{id}</code></p>
+    <p>   Ejemplo: <code>GET /api/characters/1234</code></p>
+    <p>3. Para buscar por nombre: <code>GET /api/characters/name/{name}</code></p>
+    <p>   Ejemplo: <code>GET /api/characters/name/Luke%20Skywalker</code></p>
+</div>
+
+<!-- Script para manejar las búsquedas -->
 <script>
+    // Función para mostrar todos los personajes
+    document.getElementById('btnShowAll').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/characters');
+            const characters = await response.json();
+            displayResults(characters);
+            showMessage('Ruta utilizada: GET /api/characters');
+        } catch (error) {
+            console.error('Error al obtener todos los personajes:', error);
+        }
+    });
 
+
+    document.getElementById('btnSearchId').addEventListener('click', async () => {
+        const id = document.getElementById('searchId').value.trim();
+        if (id) {
+            try {
+                const response = await fetch(`/api/characters/${id}`);
+                if (response.ok) {
+                    const character = await response.json();
+                    displayResults([character]);  // Envía un array con el personaje encontrado
+                    showMessage(`Ruta utilizada: GET /api/characters/${id}`);
+                } else {
+                    alert('Personaje no encontrado o error en la búsqueda.');
+                    clearMessage();
+                }
+            } catch (error) {
+                console.error('Error al buscar por ID:', error);
+            }
+        } else {
+            alert('Por favor, ingresa un ID válido.');
+            clearMessage();
+        }
+    });
+
+    // Función para buscar por nombre
     document.getElementById('btnSearchName').addEventListener('click', async () => {
         const name = document.getElementById('searchName').value.trim();
         if (name) {
             try {
-
-                const response = await fetch(`/api/characters/name/${encodeURIComponent(name)}`);
+                const response = await fetch(`/api/characters/name/${name}`);
                 if (response.ok) {
                     const characters = await response.json();
                     displayResults(characters); // Envía el array de personajes encontrados
@@ -30,4 +110,34 @@
             clearMessage();
         }
     });
+
+   
+    function displayResults(characters) {
+        const results = document.getElementById('results');
+        results.innerHTML = ''; // Limpia los resultados previos
+        if (characters.length === 0) {
+            results.innerHTML = '<tr><td colspan="3">No se encontraron personajes.</td></tr>';
+            return; // Salimos de la función si no hay personajes
+        }
+        characters.forEach(character => {
+            const row = `<tr>
+          <td>${character.name || 'Desconocido'}</td>
+          <td>${character.height || 'Desconocido'}</td>
+          <td>${character.gender || 'Desconocido'}</td>
+        </tr>`;
+            results.innerHTML += row; // Agrega la fila a la tabla
+        });
+    }
+
+    // Función para mostrar el mensaje con la ruta utilizada
+    function showMessage(message) {
+        document.getElementById('message').innerText = message;
+    }
+
+    // Función para limpiar el mensaje
+    function clearMessage() {
+        document.getElementById('message').innerText = '';
+    }
 </script>
+</body>
+</html>
