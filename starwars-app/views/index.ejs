@@ -1,0 +1,33 @@
+
+<div>
+    <label for="searchName">Buscar por nombre:</label>
+    <input type="text" id="searchName" placeholder="Ingresa el nombre">
+    <button id="btnSearchName">Buscar por nombre</button>
+</div>
+
+
+<script>
+
+    document.getElementById('btnSearchName').addEventListener('click', async () => {
+        const name = document.getElementById('searchName').value.trim();
+        if (name) {
+            try {
+
+                const response = await fetch(`/api/characters/name/${encodeURIComponent(name)}`);
+                if (response.ok) {
+                    const characters = await response.json();
+                    displayResults(characters); // Envía el array de personajes encontrados
+                    showMessage(`Ruta utilizada: GET /api/characters/name/${name}`);
+                } else {
+                    alert('Personaje no encontrado o error en la búsqueda.');
+                    clearMessage();
+                }
+            } catch (error) {
+                console.error('Error al buscar por nombre:', error);
+            }
+        } else {
+            alert('Por favor, ingresa un nombre válido.');
+            clearMessage();
+        }
+    });
+</script>
